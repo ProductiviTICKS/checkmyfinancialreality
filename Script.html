@@ -1,0 +1,992 @@
+<script>
+
+  window.onerror = function(msg, url, line, col, error) {
+
+  document.body.innerHTML = `
+    <div style="padding:20px;font-family:Arial">
+      <h2>JavaScript Error</h2>
+      <p><strong>Message:</strong> ${msg}</p>
+      <p><strong>Line:</strong> ${line}</p>
+      <p><strong>Column:</strong> ${col}</p>
+    </div>
+  `;
+
+  return true;
+};
+
+if (
+  navigator.userAgent.includes("Instagram") ||
+  navigator.userAgent.includes("FBAN") ||
+  navigator.userAgent.includes("FBAV")
+) {
+
+  alert(
+    "For the best experience, please tap ••• and choose Open in Safari."
+  );
+
+}
+
+// =====================================
+// GLOBALS
+// =====================================
+
+let questions = [];
+let currentQuestion = 0;
+let answers = [];
+
+// =====================================
+// START ASSESSMENT
+// =====================================
+
+function startAssessment() {
+
+  document.getElementById("landingPage").style.display = "none";
+
+  document
+    .getElementById("assessmentContainer")
+    .classList.remove("hidden");
+
+  google.script.run
+  .withSuccessHandler(function(data){
+
+    if (!data || !Array.isArray(data)) {
+
+      document.body.innerHTML =
+        "<h2>Error loading assessment.</h2>";
+
+      return;
+    }
+
+    questions = data;
+    currentQuestion = 0;
+    answers = [];
+
+    showQuestion();
+
+  })
+  .withFailureHandler(function(error){
+
+    document.body.innerHTML =
+      "<h2>Apps Script Error</h2>" +
+      "<p>" + error.message + "</p>";
+
+  })
+  .getQuestions();
+
+}
+
+// =====================================
+// SHOW QUESTION
+// =====================================
+
+function showQuestion() {
+
+  const question = questions[currentQuestion];
+
+  const progress =
+    ((currentQuestion + 1) / questions.length) * 100;
+
+  document.getElementById("progressText").innerHTML =
+    `Question ${currentQuestion + 1} of ${questions.length}`;
+
+  document.getElementById("progressBar").style.width =
+    progress + "%";
+
+  document.getElementById("questionCard").innerHTML = `
+
+    <div class="section-title">
+      ${question.pillar.toUpperCase()}
+    </div>
+
+    <h2 class="question-title">
+      ${question.question}
+    </h2>
+
+    <div>
+
+      ${question.options.map(option => `
+
+        <div
+          class="option"
+          onclick="selectAnswer('${escapeQuotes(option)}')">
+
+          ${option}
+
+        </div>
+
+      `).join("")}
+
+    </div>
+
+    ${currentQuestion > 0 ? `
+
+      <div style="
+      margin-top:24px;
+      ">
+
+        <button
+          class="primary-btn"
+          onclick="previousQuestion()">
+
+          ← Previous Question
+
+        </button>
+
+      </div>
+
+    ` : ""}
+
+  `;
+
+}
+
+// =====================================
+// SELECT ANSWER
+// =====================================
+
+function selectAnswer(answer) {
+
+  answers[currentQuestion] = answer;
+
+  currentQuestion++;
+
+  if(currentQuestion < questions.length){
+
+    showQuestion();
+
+  } else {
+
+    showDetailsForm();
+
+  }
+
+}
+function previousQuestion() {
+
+  if(currentQuestion === 0){
+    return;
+  }
+
+  currentQuestion--;
+
+  showQuestion();
+
+}
+
+// =====================================
+// DETAILS FORM
+// =====================================
+
+function showDetailsForm() {
+
+  document
+    .getElementById("assessmentContainer")
+    .classList.add("hidden");
+
+  document
+    .getElementById("detailsContainer")
+    .classList.remove("hidden");
+
+  document.getElementById("detailsContainer").innerHTML = `
+
+    <div class="container">
+
+      <div class="assessment-wrapper">
+
+        <div class="question-card">
+
+          <div class="section-title">
+            ONE LAST STEP
+          </div>
+
+          <h2 class="question-title">
+            See Your Financial Reality Score™
+          </h2>
+
+          <div class="form-grid">
+
+            <div class="form-group">
+
+  <label>First Name</label>
+
+  <input
+    id="firstName"
+    class="form-control">
+
+  <div
+    id="firstNameError"
+    class="error-message">
+  </div>
+
+</div>
+
+            <div class="form-group">
+
+  <label>Last Name</label>
+
+  <input
+    id="lastName"
+    class="form-control">
+
+  <div
+    id="lastNameError"
+    class="error-message">
+  </div>
+
+</div>
+
+ <div class="form-group">
+
+  <label>Email</label>
+
+  <input
+    id="email"
+    type="email"
+    class="form-control">
+
+  <div
+    id="emailError"
+    class="error-message">
+  </div>
+
+</div>
+
+            <div class="form-group">
+
+  <label>Mobile Number</label>
+
+  <input
+    id="mobile"
+    class="form-control">
+
+  <div
+    id="mobileError"
+    class="error-message">
+  </div>
+
+</div>
+
+            <div class="form-group">
+              <label>City</label>
+              <input
+                id="city"
+                class="form-control">
+            </div>
+
+            <div class="form-group">
+              <label>Age Group</label>
+
+              <select
+                id="ageGroup"
+                class="form-control">
+
+                <option>18-24</option>
+                <option>25-34</option>
+                <option>35-44</option>
+                <option>45-54</option>
+                <option>55+</option>
+
+              </select>
+
+            </div>
+
+            <div class="form-group">
+
+              <label>Marital Status</label>
+
+              <select
+                id="maritalStatus"
+                class="form-control">
+
+                <option>Single</option>
+                <option>Married</option>
+                <option>Separated</option>
+                <option>Widowed</option>
+
+              </select>
+
+            </div>
+
+            <div class="form-group">
+
+              <label>Children</label>
+
+              <select
+                id="children"
+                class="form-control">
+
+                <option>None</option>
+                <option>1-2</option>
+                <option>3+</option>
+
+              </select>
+
+            </div>
+
+            <div class="form-group">
+
+              <label>Breadwinner Status</label>
+
+              <select
+                id="breadwinnerStatus"
+                class="form-control">
+
+                <option>Primary Breadwinner</option>
+                <option>Shared Breadwinner</option>
+                <option>Not a Breadwinner</option>
+
+              </select>
+
+            </div>
+
+          </div>
+
+          <br>
+
+          <button
+            class="primary-btn"
+            onclick="submitAssessment()">
+
+            GENERATE MY RESULTS →
+
+          </button>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  `;
+
+}
+
+function showFieldError(fieldId, message){
+
+  document
+    .getElementById(fieldId)
+    .classList.add("input-error");
+
+  document
+    .getElementById(fieldId + "Error")
+    .innerHTML = message;
+
+}
+
+function clearFieldError(fieldId){
+
+  document
+    .getElementById(fieldId)
+    .classList.remove("input-error");
+
+  document
+    .getElementById(fieldId + "Error")
+    .innerHTML = "";
+
+}
+// =====================================
+// SUBMIT
+// =====================================
+
+function submitAssessment() {
+
+  clearFieldError("firstName");
+clearFieldError("email");
+clearFieldError("mobile");
+
+  const firstName =
+  document.getElementById("firstName").value.trim();
+
+const email =
+  document.getElementById("email").value.trim();
+
+const mobile =
+  document.getElementById("mobile").value.trim();
+
+if (!firstName) {
+
+  showFieldError(
+  "firstName",
+  "Please enter your first name."
+);
+  return;
+
+}
+
+if (!email) {
+
+  showFieldError(
+  "email",
+  "Please enter your email address."
+);
+  return;
+
+}
+
+if (
+  !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+) {
+
+  showFieldError(
+  "email",
+  "Please enter a valid email address."
+);
+  return;
+
+}
+
+if (!mobile) {
+
+  showFieldError(
+  "mobile",
+  "Please enter your mobile number."
+);
+  return;
+
+}
+
+if (
+  !/^(09|\+639|639)\d{9}$/.test(mobile)
+) {
+
+  showFieldError(
+  "mobile",
+  "Please enter a valid Philippine mobile number.(e.g. 639171234567)."
+);
+  return;
+
+}const data = {
+
+    firstName:
+      document.getElementById("firstName").value,
+
+    lastName:
+      document.getElementById("lastName").value,
+
+    email:
+      document.getElementById("email").value,
+
+    mobile:
+      document.getElementById("mobile").value,
+
+    city:
+      document.getElementById("city").value,
+
+    maritalStatus:
+      document.getElementById("maritalStatus").value,
+
+    children:
+      document.getElementById("children").value,
+
+    breadwinnerStatus:
+      document.getElementById("breadwinnerStatus").value,
+
+    ageGroup:
+      document.getElementById("ageGroup").value,
+
+    answers: answers
+
+  };
+
+  document
+    .getElementById("detailsContainer")
+    .classList.add("hidden");
+
+  document
+    .getElementById("loadingContainer")
+    .classList.remove("hidden");
+
+  google.script.run
+    .withSuccessHandler(function(result){
+
+      google.script.run.saveAssessment(data);
+
+      showPremiumResults(result);
+
+    })
+    .calculateScore(data);
+
+}
+
+// =====================================
+// HELPERS
+// =====================================
+
+function escapeQuotes(text){
+
+  return text
+    .replace(/'/g,"\\'")
+    .replace(/"/g,"&quot;");
+
+}
+
+
+// =====================================
+// PREMIUM RESULTS
+// =====================================
+
+function showPremiumResults(result) {
+
+  document
+    .getElementById("loadingContainer")
+    .classList.add("hidden");
+
+  document
+    .getElementById("resultsContainer")
+    .classList.remove("hidden");
+
+  renderIdentity(result);
+
+  renderSnapshot(result);
+
+  renderObservations(result);
+
+  renderReflection(result);
+
+  renderConsultation(result);
+
+}
+function renderObservations(result) {
+
+  let observations = [];
+
+  if(result.earningPower < 50){
+
+    observations.push(
+      "Your household appears to rely heavily on your continued ability to earn income."
+    );
+
+  }
+
+  if(result.financialSafetyNet < 50){
+
+    observations.push(
+      "Unexpected expenses or temporary income interruptions could create financial pressure."
+    );
+
+  }
+
+  if(result.familySecurity < 50){
+
+    observations.push(
+      "People who depend on you may also be highly dependent on your income."
+    );
+
+  }
+
+  if(result.futureGrowth >= 60){
+
+    observations.push(
+      "You appear to be making meaningful progress toward long-term financial growth."
+    );
+
+  }
+
+  document.getElementById(
+    "observationsSection"
+  ).innerHTML = `
+
+    <div class="section-title">
+
+      WHAT STANDS OUT
+
+    </div>
+
+    <ul id="observationList">
+
+      ${observations.map(item => `
+        <li>${item}</li>
+      `).join("")}
+
+    </ul>
+
+  `;
+
+}
+// =====================================
+// IDENTITY SECTION
+// =====================================
+
+function renderIdentity(result) {
+
+  let description = "";
+  let strength = "";
+  let opportunity = "";
+
+  switch(result.financialIdentity){
+
+    case "🌱 The Survivor":
+
+      description =
+      "You are focused on managing today's financial realities while navigating immediate priorities and responsibilities.";
+
+      strength =
+      "Resilience and determination.";
+
+      opportunity =
+      "Building greater financial stability.";
+
+      break;
+
+    case "👨‍👩‍👧 The Provider":
+
+      description =
+      "You carry significant responsibility for the people around you and much of your financial effort is focused on creating stability for those who depend on you.";
+
+      strength =
+      "Commitment to family and responsibility.";
+
+      opportunity =
+      "Reducing dependence on a single source of income.";
+
+      break;
+
+    case "🏗 The Builder":
+
+      description =
+      "You have moved beyond basic financial survival and are actively building a stronger financial future. Your responses suggest positive financial habits and intentional progress toward long-term goals.";
+
+      strength =
+      "Consistency and financial discipline.";
+
+      opportunity =
+      "Accelerating long-term growth while strengthening weaker areas.";
+
+      break;
+
+    case "🛡 The Guardian":
+
+      description =
+      "You place a high value on protecting your family and creating financial security. Stability and preparedness appear to be important priorities.";
+
+      strength =
+      "Strong sense of responsibility.";
+
+      opportunity =
+      "Growing wealth beyond protection.";
+
+      break;
+
+    default:
+
+      description =
+      "You appear to have multiple financial pillars working together to support long-term goals and future opportunities.";
+
+      strength =
+      "Balanced financial foundation.";
+
+      opportunity =
+      "Legacy and long-term impact planning.";
+
+  }
+
+  document.getElementById("identitySection").innerHTML = `
+
+    <div class="section-title">
+
+      YOUR FINANCIAL IDENTITY
+
+    </div>
+
+    <div class="identity-title">
+
+      ${result.financialIdentity}
+
+    </div>
+
+    <div class="identity-description">
+
+      ${description}
+
+    </div>
+
+    <br>
+
+    <div class="mini-card">
+
+      <strong>CORE STRENGTH</strong>
+
+      ${strength}
+
+    </div>
+
+    <div class="mini-card">
+
+      <strong>GROWTH OPPORTUNITY</strong>
+
+      ${opportunity}
+
+    </div>
+
+    <br>
+
+    <div style="
+      font-size:14px;
+      color:#64748B;
+      font-weight:600;
+    ">
+
+      Financial Reality Score: ${result.overallScore}/100
+
+    </div>
+
+  `;
+
+}
+
+// =====================================
+// SNAPSHOT SECTION
+// =====================================
+
+function renderSnapshot(result) {
+
+document.getElementById("snapshotSection").innerHTML = `
+
+
+<div class="section-title">
+
+  YOUR FINANCIAL SNAPSHOT
+
+</div>
+
+${buildSnapshotBar(
+  "💼 Earning Power",
+  result.earningPower,
+  "How much your current lifestyle depends on your ability to keep earning income."
+)}
+
+${buildSnapshotBar(
+  "🏦 Financial Safety Net",
+  result.financialSafetyNet,
+  "How prepared you are for emergencies, unexpected expenses, or temporary income loss."
+)}
+
+${buildSnapshotBar(
+  "🛡 Family Security",
+  result.familySecurity,
+  "How financially protected your loved ones would be if something happened to you."
+)}
+
+${buildSnapshotBar(
+  "🌱 Future Growth",
+  result.futureGrowth,
+  "How actively you're building savings, investments, and long-term financial progress."
+)}
+
+${buildSnapshotBar(
+  "😌 Financial Confidence",
+  result.financialConfidence,
+  "How much control, clarity, and peace of mind you currently feel about your finances."
+)}
+
+
+`;
+
+}
+
+function buildSnapshotBar(label, score, definition) {
+
+return `
+
+
+<div class="snapshot-item">
+
+  <div class="snapshot-header">
+
+    <span>${label}</span>
+
+    <span class="snapshot-score">
+      ${score}
+    </span>
+
+  </div>
+
+  <div class="progress-track">
+
+    <div
+      class="progress-fill"
+      style="width:${score}%">
+
+    </div>
+
+  </div>
+
+  <div class="snapshot-definition">
+
+    ${definition}
+
+  </div>
+
+</div>
+
+
+`;
+
+}
+
+
+// =====================================
+// STRONGEST AREA
+// =====================================
+
+function renderStrongestArea(result) {
+
+  document.getElementById("strongestAreaSection").innerHTML = `
+
+    <div class="section-title">
+
+      YOUR STRONGEST AREA
+
+    </div>
+
+    <div class="identity-title"
+         style="font-size:36px;">
+
+      ${result.strongestArea}
+
+    </div>
+
+    <div class="identity-description">
+
+      This appears to be the strongest area of your current
+      financial foundation based on your responses.
+
+    </div>
+
+  `;
+
+}
+
+// =====================================
+// GROWTH OPPORTUNITY
+// =====================================
+
+function renderGrowthOpportunity(result) {
+
+  document.getElementById("growthOpportunitySection").innerHTML = `
+
+    <div class="section-title">
+
+      BIGGEST OPPORTUNITY
+
+    </div>
+
+    <div class="identity-title"
+         style="font-size:36px;">
+
+      ${result.growthOpportunity}
+
+    </div>
+
+    <div class="identity-description">
+
+      Improving this area may have the greatest positive impact
+      on your overall financial readiness.
+
+    </div>
+
+  `;
+
+}
+
+// =====================================
+// PRIMARY INSIGHT
+// =====================================
+
+function renderInsight(result) {
+
+  document.getElementById("insightSection").innerHTML = `
+
+    <div class="section-title">
+
+      PRIMARY INSIGHT
+
+    </div>
+
+    <div class="identity-description">
+
+      ${result.primaryInsight}
+
+    </div>
+
+  `;
+
+}
+
+// =====================================
+// REFLECTION
+// =====================================
+
+function renderReflection(result) {
+
+  document.getElementById("reflectionSection").innerHTML = `
+
+    <div class="section-title">
+
+      REFLECTION QUESTIONS
+
+    </div>
+
+    <div class="reflection-card">
+
+      <div class="reflection-question">
+
+        ${result.reflectionQuestion1}
+
+      </div>
+
+    </div>
+
+    <div class="reflection-card">
+
+      <div class="reflection-question">
+
+        ${result.reflectionQuestion2}
+
+      </div>
+
+    </div>
+
+  `;
+
+}
+
+// =====================================
+// CTA
+// =====================================
+
+function renderConsultation(result) {
+
+  document.getElementById("consultationSection").innerHTML = `
+
+    <div class="cta-card">
+
+      <div class="cta-title">
+
+        Continue Your Financial Reality Review
+
+      </div>
+
+      <div class="cta-description">
+
+        This assessment highlights patterns and blind spots.
+        A personalized review can help uncover opportunities
+        specific to your situation.
+
+      </div>
+
+      <button
+        class="primary-btn"
+        onclick="window.open('https://calendly.com/pluk-villarueldaniel/um-interview')">
+
+        Schedule My Review
+
+      </button>
+
+    </div>
+
+  `;
+
+}
+
+</script>
